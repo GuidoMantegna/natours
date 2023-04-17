@@ -1,20 +1,25 @@
+const fs = require('fs')
 const express = require('express');
 // This here is a function which upon calling will add a bunch of methods to our app variable here.
 const app = express();
 
-/* here we get the url (We're just specifying the kind of root URL here and also the 
-http method, which is 'get' in this case). So, we define in a callback func. what
-do we want to happen when someone hits that URL */
-// the callback can accept a couple of arguments, but the most basic ones are 'request' and 'response'
-app.get('/', (req, res) => {  
-    // we send in the response the status code and whatever we want
-    res
-      .status(200)
-      .json({ // using this json method will automatically set our Content-Yype to application/json
-        message: 'Hello from the server side!',
-        app: 'Natours'
-      })
-})
+/* We can do that because the top-level code is only executed once, which is right after
+the application startup. So that simply reads the tours into a variable outside of all 
+the a synchronous way.*/
+const tours = JSON.parse(fs.readFileSync(`${__dirname}/dev-data/data/tours-simple.json`))
+
+/* It's a good practice to specify the API version (v1) in case you want to do some 
+changes to your API without breaking everyone who is still using other version (v2). */
+// The callback() is known as 'Route Handler'
+app.get('/api/v1/tours', (req, res) => {
+  res.status(200).json({
+    status: 'success',
+    results: tours.length,
+    data: {
+      tours
+    }
+  })
+}) 
 
 /* here we create a variable for the port that we are gonna use in app.listen() */
 const port = 3000;
