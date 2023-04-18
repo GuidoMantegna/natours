@@ -26,6 +26,30 @@ app.get('/api/v1/tours', (req, res) => {
   })
 }) 
 
+/* We define a route which can accept a variable. In this case we create a variable called 'id' 
+ If you want to make this parameter optional, we just add a question mark to it /:id/:var? */
+app.get('/api/v1/tours/:id', (req, res) => {
+  // req.params is where all the parameters of all the variables that we define are stored
+  console.log(req.params)
+  const idParam = Number(req.params.id)
+
+  if(idParam > tours.length) {
+    return res.status(404).json({
+      status: 'fail',
+      message: 'Invalid ID'
+    })
+  } else {
+    const tour = tours.find(el => el.id === idParam)
+  
+    res.status(200).json({
+      status: 'success',
+      data: {
+        tour
+      }
+    })
+  }
+}) 
+
 /* The request object is what holds all the data, all the information, about the request that was done.
 If that request contains some data that was sent, that data should be on the request.
 Now out of the box, Express does not put that body data on the request, 
