@@ -106,6 +106,22 @@ app.patch('/api/v1/tours/:id', (req, res) => {
   })
 })
 
+app.delete('/api/v1/tours/:id', (req, res) => {
+  if(Number(req.params.id) > tours.length) {
+    return res.status(404).json({
+      status: 'fail',
+      message: 'Invalid ID'
+    })
+  } 
+  /* When we have a delete request, the response is usually a 204.
+  204 means no content and so that's because, as a result, we 
+  usually don't sent any data back. */
+  res.status(204).json({
+    status: 'success',
+    data: null // null is simply to show that the resource that we deleted now no longer exists.
+  })
+})
+
 /* here we create a variable for the port that we are gonna use in app.listen() */
 const port = 3000;
 /* first we call app.listen() to basically start up a server.
