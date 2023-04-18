@@ -88,6 +88,24 @@ app.post('/api/v1/tours', (req, res) => {
   // res.send('DONE!')
 }) 
 
+/* We have two http methods to update data: PUT and PATCH.
+With put, we expect that our application receives the entire new updated object,
+and with patch, we only expect the properties that should actually be updated on the object. */
+app.patch('/api/v1/tours/:id', (req, res) => {
+  if(Number(req.params.id) > tours.length) {
+    return res.status(404).json({
+      status: 'fail',
+      message: 'Invalid ID'
+    })
+  } 
+  res.status(200).json({
+    status: 'success',
+    data: {
+      tour: '<Updated tour here...>'
+    }
+  })
+})
+
 /* here we create a variable for the port that we are gonna use in app.listen() */
 const port = 3000;
 /* first we call app.listen() to basically start up a server.
