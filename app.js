@@ -2,18 +2,15 @@ const fs = require('fs');
 const express = require('express');
 // This here is a function which upon calling will add a bunch of methods to our app variable here.
 const app = express();
+const morgan = require('morgan');
 
-/* express.json() is middleware, and a middleware is basically a function that can modify
-the incoming request data. It's called middleware because it stands between the request 
-and the response. It's just a step that the request goes through while it's being processed. */
+// MIDDLEWARES
+/* into this function, we can pass an argument which will kind of specify how we want the logging to look like. 
+morgan() will return the same callback() that we set in customs middlewares (req, res, next) => {} */
+app.use(morgan('dev')); // GET /api/v1/tours 200 11.728 ms - 8618
+
 app.use(express.json());
 
-/* Custom middleware
-1. call app.use()
-2. pass in our function that we want to add to the middleware stack. 
-👉 In each middleware function, we have access to the request and the response, 
-but also, we have the next() function.
-👉 If we don't apply any route, this middleware will apply for every single request. */
 app.use((req, res, next) => {
   console.log('Hello from the middleware 👋')
 
@@ -28,15 +25,12 @@ app.use((req, res, next) => {
   next();
 })
 
-/* We can do that because the top-level code is only executed once, which is right after
-the application startup. So that simply reads the tours into a variable outside of all 
-the a synchronous way.*/
 const tours = JSON.parse(
   fs.readFileSync(`${__dirname}/dev-data/data/tours-simple.json`)
 );
 
+// ROUTE HANDLERS
 const getAllTours = (req, res) => {
-  console.log(req.requestTime)
   res.status(200).json({
     status: 'success',
     requestedAt: req.requestTime,
@@ -121,17 +115,13 @@ const deleteTour = (req, res) => {
   });
 };
 
-// app.get('/api/v1/tours', getAllTours)
-// app.get('/api/v1/tours/:id', getTour)
-// app.post('/api/v1/tours', createTour);
-// app.patch('/api/v1/tours/:id', updateTour);
-// app.delete('/api/v1/tours/:id', deleteTour);
-
+// ROUTES
 /* First we specify the route that we want and then what we want to happen for each method. */
 app.route('/api/v1/tours').get(getAllTours).post(createTour);
 
 app.route('/api/v1/tours/:id').get(getTour).patch(updateTour).delete(deleteTour)
 
+// START SERVER
 /* here we create a variable for the port that we are gonna use in app.listen() */
 const port = 3000;
 /* first we call app.listen() to basically start up a server.
