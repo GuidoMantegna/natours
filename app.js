@@ -3,10 +3,30 @@ const express = require('express');
 // This here is a function which upon calling will add a bunch of methods to our app variable here.
 const app = express();
 
-/* express.json() here is middleware, and middleware is basically a function that can modify
+/* express.json() is middleware, and a middleware is basically a function that can modify
 the incoming request data. It's called middleware because it stands between the request 
 and the response. It's just a step that the request goes through while it's being processed. */
 app.use(express.json());
+
+/* Custom middleware
+1. call app.use()
+2. pass in our function that we want to add to the middleware stack. 
+👉 In each middleware function, we have access to the request and the response, 
+but also, we have the next() function.
+👉 If we don't apply any route, this middleware will apply for every single request. */
+app.use((req, res, next) => {
+  console.log('Hello from the middleware 👋')
+
+  /* if we didn't call next here, the request/response cycle 
+  would really be stuck at this point, we wouldn't be able to move on,
+  and we would never ever send back a response to the client. */
+  next();
+})
+
+app.use((req, res, next) => {
+  req.requestTime = new Date().toISOString(); 
+  next();
+})
 
 /* We can do that because the top-level code is only executed once, which is right after
 the application startup. So that simply reads the tours into a variable outside of all 
@@ -16,8 +36,10 @@ const tours = JSON.parse(
 );
 
 const getAllTours = (req, res) => {
+  console.log(req.requestTime)
   res.status(200).json({
     status: 'success',
+    requestedAt: req.requestTime,
     results: tours.length,
     data: {
       tours,
