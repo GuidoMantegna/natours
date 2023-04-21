@@ -149,25 +149,36 @@ const deleteUser = (req, res) => {
 };
 
 // ROUTES
-/* First we specify the route that we want and then what we want to happen for each method. */
-app
-  .route('/api/v1/tours')
+// 1. Create a new Router
+const tourRouter = express.Router()
+const userRouter = express.Router()
+
+// 2. To connect all routers with our app, we use it as a middleware
+app.use('/api/v1/tours', tourRouter)
+app.use('/api/v1/users', userRouter)
+
+// 3. Use it in each case
+tourRouter
+  // .route('/api/v1/tours')
+  // We need to change the route because the tourRouter only runs in its particular route
+  .route('/')
   .get(getAllTours)
   .post(createTour);
 
-app
-  .route('/api/v1/tours/:id')
+tourRouter
+  // .route('/api/v1/tours/:id')
+  .route('/:id')
   .get(getTour)
   .patch(updateTour)
   .delete(deleteTour)
 
-app
-  .route('/api/v1/users')
+userRouter
+  .route('/')
   .get(getAllusers)
   .post(createUser);
 
-app
-  .route('/api/v1/users/:id')
+userRouter
+  .route('/:id')
   .get(getUser)
   .patch(updateUser)
   .delete(deleteUser);
