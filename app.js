@@ -29,7 +29,7 @@ const tours = JSON.parse(
   fs.readFileSync(`${__dirname}/dev-data/data/tours-simple.json`)
 );
 
-// ROUTE HANDLERS
+// ROUTE HANDLERS / CONTROLLERS
 const getAllTours = (req, res) => {
   res.status(200).json({
     status: 'success',
@@ -115,11 +115,62 @@ const deleteTour = (req, res) => {
   });
 };
 
+const getAllusers = (req, res) => {
+  res.status(500).json({
+    status: 'error',
+    message: 'This route is not yet defined'
+  });
+};
+
+const getUser = (req, res) => {
+  res.status(500).json({
+    status: 'error',
+    message: 'This route is not yet defined'
+  });
+};
+
+const createUser = (req, res) => {
+  res.status(500).json({
+    status: 'error',
+    message: 'This route is not yet defined'
+  });
+};
+const updateUser = (req, res) => {
+  res.status(500).json({
+    status: 'error',
+    message: 'This route is not yet defined'
+  });
+};
+const deleteUser = (req, res) => {
+  res.status(500).json({
+    status: 'error',
+    message: 'This route is not yet defined'
+  });
+};
+
 // ROUTES
 /* First we specify the route that we want and then what we want to happen for each method. */
-app.route('/api/v1/tours').get(getAllTours).post(createTour);
+app
+  .route('/api/v1/tours')
+  .get(getAllTours)
+  .post(createTour);
 
-app.route('/api/v1/tours/:id').get(getTour).patch(updateTour).delete(deleteTour)
+app
+  .route('/api/v1/tours/:id')
+  .get(getTour)
+  .patch(updateTour)
+  .delete(deleteTour)
+
+app
+  .route('/api/v1/users')
+  .get(getAllusers)
+  .post(createUser);
+
+app
+  .route('/api/v1/users/:id')
+  .get(getUser)
+  .patch(updateUser)
+  .delete(deleteUser);
 
 // START SERVER
 /* here we create a variable for the port that we are gonna use in app.listen() */
