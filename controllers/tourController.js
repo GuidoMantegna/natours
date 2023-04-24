@@ -4,6 +4,17 @@ const tours = JSON.parse(
   fs.readFileSync(`${__dirname}/../dev-data/data/tours-simple.json`)
 );
 
+exports.checkID = (req, res, next, val) => {
+  console.log(`Tour id is: ${val}`);
+  if (Number(req.params.id) > tours.length) {
+    return res.status(404).json({
+      status: 'fail',
+      message: 'Invalid ID',
+    });
+  }
+  next();
+};
+
 exports.getAllTours = (req, res) => {
   res.status(200).json({
     status: 'success',
@@ -20,21 +31,14 @@ exports.getTour = (req, res) => {
   // console.log(req.params)
   const idParam = Number(req.params.id);
 
-  if (idParam > tours.length) {
-    return res.status(404).json({
-      status: 'fail',
-      message: 'Invalid ID',
-    });
-  } else {
-    const tour = tours.find((el) => el.id === idParam);
+  const tour = tours.find((el) => el.id === idParam);
 
-    res.status(200).json({
-      status: 'success',
-      data: {
-        tour,
-      },
-    });
-  }
+  res.status(200).json({
+    status: 'success',
+    data: {
+      tour,
+    },
+  });
 };
 
 exports.createTour = (req, res) => {
@@ -59,12 +63,6 @@ exports.createTour = (req, res) => {
 };
 
 exports.updateTour = (req, res) => {
-  if (Number(req.params.id) > tours.length) {
-    return res.status(404).json({
-      status: 'fail',
-      message: 'Invalid ID',
-    });
-  }
   res.status(200).json({
     status: 'success',
     data: {
@@ -74,12 +72,6 @@ exports.updateTour = (req, res) => {
 };
 
 exports.deleteTour = (req, res) => {
-  if (Number(req.params.id) > tours.length) {
-    return res.status(404).json({
-      status: 'fail',
-      message: 'Invalid ID',
-    });
-  }
   /* When we have a delete request, the response is usually a 204.
     204 means no content and so that's because, as a result, we 
     usually don't sent any data back. */
@@ -88,4 +80,3 @@ exports.deleteTour = (req, res) => {
     data: null, // null is simply to show that the resource that we deleted now no longer exists.
   });
 };
-
