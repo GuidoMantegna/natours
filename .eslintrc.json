@@ -1,11 +1,12 @@
 {
+  // here we say we want to use the 'airbnb' and 'prettier' style guide, and also the node plugin.
   "extends": ["airbnb", "prettier", "plugin:node/recommended"],
   "plugins": ["prettier"],
   "rules": {
     "prettier/prettier": "error",
     "spaced-comment": "off",
-    "no-console": "warn",
-    "consistent-return": "off",
+    "no-console": "warn", // shows console.log() as a warn
+    "consistent-return": "off", // "consistent-return" sets that func() should always return something, so it's off
     "func-names": "off",
     "object-shorthand": "off",
     "no-process-exit": "off",
@@ -14,6 +15,9 @@
     "no-underscore-dangle": "off",
     "class-methods-use-this": "off",
     "prefer-destructuring": ["error", { "object": true, "array": false }],
-    "no-unused-vars": ["error", { "argsIgnorePattern": "req|res|next|val" }]
+    // "no-unused-vars" says that there should never be a variable that we declare but do not use.
+    // there are four exceptions which are the typical variables that we have in express, but that we don't always use.
+    "no-unused-vars": ["error", { "argsIgnorePattern": "req|res|next|val" }],
+    "endOfLine": "auto" // Will ignore 'Delete `cr` eslint... error'
   }
 }
