@@ -18,6 +18,6 @@
     // "no-unused-vars" says that there should never be a variable that we declare but do not use.
     // there are four exceptions which are the typical variables that we have in express, but that we don't always use.
     "no-unused-vars": ["error", { "argsIgnorePattern": "req|res|next|val" }],
-    "endOfLine": "auto" // Will ignore 'Delete `cr` eslint... error'
+    "no-var": "error"
   }
 }
