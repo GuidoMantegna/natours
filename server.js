@@ -54,6 +54,23 @@ const tourSchema = new mongoose.Schema({
 // NAME, SCHEMA - model name (tour) should be with an uppercase "T" as a convention
 const Tour = mongoose.model('Tour', tourSchema);
 
+// Here we create an instance of the tour model
+const testTour = new Tour({
+  name: 'The Park Camper',
+  price: 997,
+});
+
+// The mongoose model has a couple of methods on it that we can use in order to interact with de DB
+// .save() will return a promise that we can then consume
+testTour
+  .save()
+  .then((doc) => {
+    console.log(doc);
+  })
+  .catch((err) => {
+    console.log('ERROR 💥:', err);
+  });
+
 // DEFINE THE PORT
 const port = process.env.PORT || 3000;
 
