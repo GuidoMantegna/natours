@@ -16,7 +16,7 @@ const router = express.Router();
 
 // PARAM MIDDLEWARE
 // So, first we check if the 'id' is valid, and then continue with the flow
-router.param('id', checkID)
+// router.param('id', checkID)
 
 router
   .route('/')
