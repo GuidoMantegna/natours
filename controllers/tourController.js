@@ -81,12 +81,17 @@ exports.updateTour = async (req, res) => {
   }
 };
 
-exports.deleteTour = (req, res) => {
-  /* When we have a delete request, the response is usually a 204.
-    204 means no content and so that's because, as a result, we 
-    usually don't sent any data back. */
-  res.status(204).json({
-    status: 'success',
-    data: null, // null is simply to show that the resource that we deleted now no longer exists.
-  });
+exports.deleteTour = async (req, res) => {
+  try {
+    await Tour.findByIdAndDelete(req.params.id);
+    res.status(204).json({
+      status: 'success',
+      data: null,
+    });
+  } catch (error) {
+    res.status(404).json({
+      status: 'fail',
+      message: error,
+    });
+  }
 };
