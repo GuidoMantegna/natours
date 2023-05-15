@@ -57,13 +57,28 @@ exports.createTour = async (req, res) => {
   }
 };
 
-exports.updateTour = (req, res) => {
-  res.status(200).json({
-    status: 'success',
-    data: {
-      tour: '<Updated tour here...>',
-    },
-  });
+exports.updateTour = async (req, res) => {
+  try {
+    /* findByIdAndUpdate() takes three params:
+    1. the id
+    2. the data that we actually want to change (the body)
+    3. we can patch in some options */
+    const tour = await Tour.findByIdAndUpdate(req.params.id, req.body, {
+      new: true, // this way, then the new updated document is the one that will be returned.
+      runValidators: true, // each time that we update a certain document, then the validators that we specified in the schema will run again
+    });
+    res.status(200).json({
+      status: 'success',
+      data: {
+        tour,
+      },
+    });
+  } catch (error) {
+    res.status(404).json({
+      status: 'fail',
+      message: error,
+    });
+  }
 };
 
 exports.deleteTour = (req, res) => {
