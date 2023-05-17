@@ -2,8 +2,19 @@ const Tour = require('./../models/tourModel');
 
 exports.getAllTours = async (req, res) => {
   try {
-    /* when we wanted to query for all the documents, we simply used find with no parameters */
-    const tours = await Tour.find();
+    // FIRST WE BUILD THE QUERY
+    const queryObj = { ...req.query };
+    const excludedFields = ['page', 'sort', 'limit', 'fields'];
+    excludedFields.forEach((el) => delete queryObj[el]);
+
+    // const tours = await Tour.find(queryObj);
+    // WE SAVE THE QUERY
+    const query = Tour.find(queryObj);
+
+    // WE EXECUTE THE QUERY
+    const tours = await query;
+
+    // SEND RESPONSE
     res.status(200).json({
       status: 'success',
       results: tours.length,
