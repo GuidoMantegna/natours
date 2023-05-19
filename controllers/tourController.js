@@ -3,18 +3,32 @@ const Tour = require('./../models/tourModel');
 exports.getAllTours = async (req, res) => {
   try {
     // FIRST WE BUILD THE QUERY
-    // 1) Filtering
+    // 1A) Filtering
     const queryObj = { ...req.query };
     const excludedFields = ['page', 'sort', 'limit', 'fields'];
     excludedFields.forEach((el) => delete queryObj[el]);
 
-    // 2) Advanced filtering
+    // 1B) Advanced filtering
     let queryStr = JSON.stringify(queryObj)
     // here we replace (gte, gt, lte, lt) x ($gte, $gt, $lte, $lt) 
     queryStr = queryStr.replace(/\b(gte|gt|lte|lt)\b/g, match => `$${match}`);
 
     // WE SAVE THE QUERY
-    const query = Tour.find(JSON.parse(queryStr));
+    let query = Tour.find(JSON.parse(queryStr));
+
+    // 2) Sorting
+    if(req.query.sort) {
+      /* .sort() is one of the many methods that are available on all documents created with query class. */
+      /* If a string is passed, it must be a space delimited list of path names so, 
+      instead of passing it into sort method as we received from the query { sort: '-price,ratingsAverage' },
+      we need to pass it this way '-price ratingsAverage' */
+
+      const sortBy = req.query.sort.split(',').join(' ');
+
+      query = query.sort(sortBy)
+    } else {
+      query = query.sort('-createdAt')
+    }
 
     // WE EXECUTE THE QUERY
     const tours = await query;
