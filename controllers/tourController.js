@@ -40,8 +40,24 @@ exports.getAllTours = async (req, res) => {
       query = query.select('-__V');
     }
 
+    // 4) Pagination
+
+    //'*1' converts a string to number - '|| value' defines a default value
+    const page = req.query.page * 1 || 1;
+    const limit = req.query.limit * 1 || 100;
+    // e.g. (3 - 1) * 10 = 20 --> will skip 20 results, and return from 21 to 30 (page 3)
+    const skip = (page - 1) * limit;
+
+    query = query.skip(skip).limit(limit);
+
+    if (req.page) {
+      const numTours = await Tour.countDocuments();
+      if (skip >= numTours) throw new Error('This page does not exist');
+    }
+
     // WE EXECUTE THE QUERY
     const tours = await query;
+    // query.sort().select().skip().limit()
 
     // SEND RESPONSE
     res.status(200).json({
