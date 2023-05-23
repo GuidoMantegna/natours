@@ -9,15 +9,15 @@ exports.getAllTours = async (req, res) => {
     excludedFields.forEach((el) => delete queryObj[el]);
 
     // 1B) Advanced filtering
-    let queryStr = JSON.stringify(queryObj)
-    // here we replace (gte, gt, lte, lt) x ($gte, $gt, $lte, $lt) 
-    queryStr = queryStr.replace(/\b(gte|gt|lte|lt)\b/g, match => `$${match}`);
+    let queryStr = JSON.stringify(queryObj);
+    // here we replace (gte, gt, lte, lt) x ($gte, $gt, $lte, $lt)
+    queryStr = queryStr.replace(/\b(gte|gt|lte|lt)\b/g, (match) => `$${match}`);
 
     // WE SAVE THE QUERY
     let query = Tour.find(JSON.parse(queryStr));
 
     // 2) Sorting
-    if(req.query.sort) {
+    if (req.query.sort) {
       /* .sort() is one of the many methods that are available on all documents created with query class. */
       /* If a string is passed, it must be a space delimited list of path names so, 
       instead of passing it into sort method as we received from the query { sort: '-price,ratingsAverage' },
@@ -25,9 +25,19 @@ exports.getAllTours = async (req, res) => {
 
       const sortBy = req.query.sort.split(',').join(' ');
 
-      query = query.sort(sortBy)
+      query = query.sort(sortBy);
     } else {
-      query = query.sort('-createdAt')
+      query = query.sort('-createdAt');
+    }
+
+    // 3) Field limiting
+    if (req.query.fields) {
+      const fields = req.query.fields.split(',').join(' ');
+
+      query = query.select(fields);
+    } else {
+      // minus '-' means to exclude something
+      query = query.select('-__V');
     }
 
     // WE EXECUTE THE QUERY
