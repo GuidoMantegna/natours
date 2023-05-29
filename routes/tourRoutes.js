@@ -7,14 +7,15 @@ const {
   createTour,
   updateTour,
   deleteTour,
+  aliasTopTours,
 } = require('../controllers/tourController');
 
 // CREATE THE ROUTER
 const router = express.Router();
 
-// PARAM MIDDLEWARE
-// So, first we check if the 'id' is valid, and then continue with the flow
-// router.param('id', checkID)
+/* Before we call getAllTours from the tours controller, 
+we use a middleware that can actually manipulate and filter the tours */
+router.route('/top-5-cheap').get(aliasTopTours, getAllTours)
 
 router.route('/').get(getAllTours).post(createTour);
 
