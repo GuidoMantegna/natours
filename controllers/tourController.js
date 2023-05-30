@@ -116,3 +116,47 @@ exports.deleteTour = async (req, res) => {
     });
   }
 };
+
+exports.getTourStats = async (req, res) => {
+  try {
+    const stats = await Tour.aggregate([
+      /* This is the first stage, and this stage will match only the tours 
+       which ratingsAverage are greater or equal than 4.5 */
+      {
+        $match: { ratingsAverage: { $gte: 4.5 } }
+      },
+      {
+        $group: {
+          /* The first thing is always to specify the id 
+           because this is where we're gonna specify what we want to group by. */
+          _id: { $toUpper: '$difficulty'},
+          /* Basically for each of the document that's gonna go through this pipeline,
+           one will be added to this num counter. */
+          numTours: { $sum: 1 },
+          numRatings: { $sum: '$ratingsQuantity' },
+          avgRating: { $avg: '$ratingsAverage' },
+          avgPrice: { $avg: '$price' },
+          minPrice: { $min: '$price' },
+          maxPrice: { $max: '$price' },
+        }
+      },
+      {
+        $sort: {
+          avgPrice: 1 // 1 is for ascending order
+        }
+      }
+    ]);
+    res.status(200).json({
+      status: 'success',
+      data: {
+        stats,
+      },
+    });
+
+  } catch (error) {
+    res.status(404).json({
+      status: 'fail',
+      message: error,
+    });
+  }
+}
