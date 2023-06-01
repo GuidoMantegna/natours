@@ -1,6 +1,7 @@
 const mongoose = require('mongoose');
 
 const tourSchema = new mongoose.Schema(
+  // SCHEMA DEFINITION
   {
     name: {
       type: String,
@@ -76,12 +77,22 @@ const tourSchema = new mongoose.Schema(
     //   type: Boolean,
     //   default: false
     // }
+  },
+  // SCHEMA OPTIONS
+  {
+    toJSON: { virtuals: true },
+    toObject: { virtuals: true },
   }
-  // {
-  //   toJSON: { virtuals: true },
-  //   toObject: { virtuals: true }
-  // }
 );
+
+/* - this virtual property here will basically be created each time
+ that we get some data out of the database. 
+ - we used this regular function here because, an arrow function does not get 
+ its own 'this' keyword. Here we actually need the 'this' keyword because it is 
+ going to be pointing to the current document. */
+tourSchema.virtual('durationWeeks').get(function () {
+  return this.duration / 7;
+});
 
 // MODEL
 // NAME, SCHEMA - model name (tour) should be with an uppercase "T" as a convention
