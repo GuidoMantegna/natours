@@ -1,4 +1,5 @@
 const mongoose = require('mongoose');
+const slugify = require('slugify');
 
 const tourSchema = new mongoose.Schema(
   // SCHEMA DEFINITION
@@ -12,7 +13,7 @@ const tourSchema = new mongoose.Schema(
       // minlength: [10, 'A tour name must have more or equal then 10 characters']
       // validate: [validator.isAlpha, 'Tour name must only contain characters']
     },
-    // slug: String,
+    slug: String,
     duration: {
       type: Number,
       required: [true, 'A tour must have a duration'],
@@ -85,6 +86,7 @@ const tourSchema = new mongoose.Schema(
   }
 );
 
+// VIRTUAL PROPERTIES
 /* - this virtual property here will basically be created each time
  that we get some data out of the database. 
  - we used this regular function here because, an arrow function does not get 
@@ -92,6 +94,26 @@ const tourSchema = new mongoose.Schema(
  going to be pointing to the current document. */
 tourSchema.virtual('durationWeeks').get(function () {
   return this.duration / 7;
+});
+
+// DOCUMENT MIDDLEWARE: runs ONLY before .save() and .create()
+/* - 'pre' for pre middleware which is gonna run before an actual event.
+ - that event in this case is the 'save' event.
+ - the func. will be called before an actual document is saved to the database. */
+tourSchema.pre('save', function (next) {
+  /* - This refers to the current document itself
+   - We are gonna create a slug using slugify library
+   - Here we also have next() basically to call the next middleware in the stack */
+  this.slug = slugify(this.name, { lower: true });
+  next();
+});
+
+/* - post() middleware functions are executed after all the pre middleware functions have completed
+ - in the case of post middleware has access not only to next, but also to 
+ the document that was just saved to the database. */
+tourSchema.post('save', function (doc, next) {
+  console.log(doc);
+  next();
 });
 
 // MODEL
