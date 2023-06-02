@@ -74,10 +74,10 @@ const tourSchema = new mongoose.Schema(
       select: false,
     },
     startDates: [Date],
-    // secretTour: {
-    //   type: Boolean,
-    //   default: false
-    // }
+    secretTour: {
+      type: Boolean,
+      default: false,
+    },
   },
   // SCHEMA OPTIONS
   {
@@ -108,11 +108,22 @@ tourSchema.pre('save', function (next) {
   next();
 });
 
-/* - post() middleware functions are executed after all the pre middleware functions have completed
- - in the case of post middleware has access not only to next, but also to 
- the document that was just saved to the database. */
-tourSchema.post('save', function (doc, next) {
-  console.log(doc);
+// QUERY MIDDLEWARE
+/* Instead of defining a 'find' hook, we can use a RegEx to match all the commands
+that start with the name find (find, findOne, findAndUpdate, findAndDelete...) */
+tourSchema.pre(/^find/, function (next) {
+  /* 'this' is now a query object, so we can chain all of the methods that we have for queries. */
+  this.find({ secretTour: { $ne: true } });
+
+  this.start = Date.now();
+  next();
+});
+
+/* this middleware is gonna run after the query has already executed. 
+And so, therefore, it can have access to the documents that were returned. */
+tourSchema.post(/^find/, function (docs, next) {
+  console.log(`Query took ${Date.now() - this.start} milliseconds`);
+  console.log(docs);
   next();
 });
 
