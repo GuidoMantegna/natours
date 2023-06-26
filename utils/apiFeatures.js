@@ -34,6 +34,7 @@ class APIFeatures {
 
   limitFields() {
     if (this.queryString.fields) {
+      /* Bug e.g.: instead of joining with a space here, we forgot to put it. */
       const fields = this.queryString.fields.split(',').join(' ');
       this.query = this.query.select(fields);
     } else {

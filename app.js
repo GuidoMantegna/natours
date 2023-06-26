@@ -15,17 +15,22 @@ app.use(express.json());
 app.use(express.static(`${__dirname}/public`));
 
 app.use((req, res, next) => {
-  // console.log('Hello from the middleware 👋');
-  next();
-});
-app.use((req, res, next) => {
   req.requestTime = new Date().toISOString();
   next();
 });
 
-// 2. To connect all routers with our app, we use it as a middleware
+// 2. ROUTES
 app.use('/api/v1/tours', tourRouter);
 app.use('/api/v1/users', userRouter);
+
+/* app.all() gonna run for all the verbs (GET, POST, DELETE...) 
+  '*' stands for everything */
+app.all('*', (req, res, next) => {
+  res.status(404).json({
+    status: 'fail',
+    message: `Can't find ${req.originalUrl} on this server!`,
+  });
+});
 
 // EXPORT APP TO USE IT IN SERVER.JS
 module.exports = app;
