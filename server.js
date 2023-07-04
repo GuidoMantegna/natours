@@ -2,6 +2,14 @@
 const mongoose = require('mongoose');
 // Require dotenv to consume the config.env file
 const dotenv = require('dotenv');
+
+// UNCAUGHT EXCEPTIONS
+process.on('uncaughtException', err => {
+  console.log('UNCAUGHT EXCEPTION 💥 Shutting down...');
+  console.log(err.name, err.message)
+  process.exit(1); // Code one stands for uncaught exception.
+})
+
 /* dotenv has a variable called config on it and then in there we just have
 to pass an object to specify the path where our configuration file is located.
 It will read our variables from the file and save them into node JS environment variables.*/
