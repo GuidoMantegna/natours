@@ -37,6 +37,30 @@ mongoose
 const port = process.env.PORT || 3000;
 
 // START SERVER
-app.listen(port, () => {
+const server = app.listen(port, () => {
   console.log(`App running on port ${port}...`);
+});
+
+// UNHANDLED REJECTIONS
+// Course approach
+// process.on('unhandledRejection', err => {
+//   console.log(err.name, err.message)
+// })
+
+// Documentation approach https://nodejs.org/api/process.html#event-unhandledrejection
+process.on('unhandledRejection', (reason, promise) => {
+  console.log('Unhandled Rejection at:', promise, 'reason:', reason);
+
+  // Application specific logging, throwing an error, or other logic here
+  /* If we really have like some problem with the database connection, 
+  then our application is not gonna work at all. And so all we can really do here 
+  is to shut down our application: what we do is to shutdown gracefully 
+  where we first close the server and only then, we shut down the application */
+  console.log('UNHANDLED REJECTION 💥 Shutting down...');
+  /* by doing server.close, we give the server, basically time to finish all the request 
+  that are still pending or being handled at the time, and only after that, 
+  the server is then basically killed */
+  server.close(() => {
+    process.exit(1); // Code one stands for uncaught exception.
+  });
 });
