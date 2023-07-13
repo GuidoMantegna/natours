@@ -20,6 +20,7 @@ const userSchema = new mongoose.Schema({
     type: String,
     required: [true, 'Please provide a password'],
     minlength: 8,
+    select: false, // this will automatically never show up 'password' in any output.
   },
   passwordConfirm: {
     type: String,
@@ -51,6 +52,17 @@ userSchema.pre('save', async function (next) {
 
   next();
 });
+
+// PASSWORD CHECKING
+/* an instance method is basically a method that is gonna be available 
+on all documents of a certain collection */
+userSchema.methods.correctPassword = async function (
+  cadidatePassword,
+  userPassword
+) {
+  // we can't do simply this.password because the password is not available in the output
+  return await bcrypt.compare(cadidatePassword, userPassword);
+};
 
 const User = mongoose.model('User', userSchema);
 

@@ -1,6 +1,23 @@
 const jwt = require('jsonwebtoken');
 const User = require('./../models/userModel');
 const catchAsync = require('./../utils/catchAsync');
+const AppError = require('./../utils/appError');
+
+// CREATE A TOKEN
+const signToken = (id) => {
+  /* payload: an object for all the data that we're going to store inside of the token
+  secret: basically a string for a secret
+  options */
+
+  return jwt.sign(
+    // payload (user._id)
+    { id },
+    // secret (defined in config.env)
+    process.env.JWT_SECRET,
+    //options (defined in config.env)
+    { expiresIn: process.env.JWT_EXPIRES_IN }
+  );
+};
 
 exports.signup = catchAsync(async (req, res, next) => {
   const newUser = await User.create({
@@ -10,20 +27,7 @@ exports.signup = catchAsync(async (req, res, next) => {
     passwordConfirm: req.body.passwordConfirm,
   });
 
-  /* 1. we create a token
-  payload: an object for all the data that we're going to store inside of the token
-  secret: basically a string for a secret
-  options */
-
-  const token = jwt.sign(
-    // payload
-    { id: newUser._id },
-    // secret
-    process.env.JWT_SECRET,
-    //options
-    { expiresIn: process.env.JWT_EXPIRES_IN }
-  );
-
+  const token = signToken(newUser._id);
   res.status(201).json({
     status: 'success',
     // we send the token to the client
@@ -31,5 +35,29 @@ exports.signup = catchAsync(async (req, res, next) => {
     data: {
       user: newUser,
     },
+  });
+});
+
+exports.login = catchAsync(async (req, res, next) => {
+  const { email, password } = req.body;
+
+  // 1) Check if email and password exist
+  if (!email || !password) {
+    return next(new AppError('Please provide email and password!', 400));
+  }
+  // 2) Check if user exists && password is correct
+  /* we need to explicitly 'select' the password, because we filtered it (using select too) 
+  from the response in userModel.password. */
+  const user = await User.findOne({ email }).select('+password');
+  /* the function to check the password is an instanced method,
+  therefore it is available on all the user documents. */
+  if (!user || !(await user.correctPassword(password, user.password))) {
+    return next(new AppError('Incorrect email or password', 401));
+  }
+
+  // 3) If everything ok, send token to client
+  res.status(200).json({
+    status: 'success',
+    token: signToken(user._id),
   });
 });
