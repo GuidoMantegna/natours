@@ -62,6 +62,14 @@ userSchema.pre('save', async function (next) {
   next();
 });
 
+/* this function here is gonna run right before a new document is actually saved. */
+userSchema.pre('save', function(next) {
+  if (!this.isModified('password') || this.isNew) return next();
+
+  this.passwordChangedAt = Date.now() - 1000;
+  next();
+});
+
 // PASSWORD CHECKING
 /* an instance method is basically a method that is gonna be available 
 on all documents of a certain collection */
