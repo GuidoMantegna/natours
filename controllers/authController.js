@@ -22,6 +22,18 @@ const signToken = (id) => {
   );
 };
 
+const createSendToken = (user, statusCode, res) => {
+  const token = signToken(user._id);
+  res.status(statusCode).json({
+    status: 'success',
+    // we send the token to the client
+    token,
+    data: {
+      user,
+    },
+  });
+};
+
 exports.signup = catchAsync(async (req, res, next) => {
   const newUser = await User.create({
     name: req.body.name,
@@ -32,15 +44,7 @@ exports.signup = catchAsync(async (req, res, next) => {
     role: req.body.role,
   });
 
-  const token = signToken(newUser._id);
-  res.status(201).json({
-    status: 'success',
-    // we send the token to the client
-    token,
-    data: {
-      user: newUser,
-    },
-  });
+  createSendToken(newUser, 201, res)
 });
 
 exports.login = catchAsync(async (req, res, next) => {
@@ -61,10 +65,7 @@ exports.login = catchAsync(async (req, res, next) => {
   }
 
   // 3) If everything ok, send token to client
-  res.status(200).json({
-    status: 'success',
-    token: signToken(user._id),
-  });
+  createSendToken(user, 200, res)
 });
 
 // Middleware function for protected routes
@@ -200,11 +201,27 @@ exports.resetPassword = catchAsync(async (req, res, next) => {
   // we do it at userModel -> userSchema.pre('save', function(next))...
 
   // 4) Log the user in, send JWT
-  const token = signToken(user._id);
-  res.status(200).json({
-    status: 'success',
-    // we send the token to the client
-    token,
-  });
-  // createSendToken(user, 200, res);
+  createSendToken(user, 200, res);
+});
+
+exports.updatePassword = catchAsync(async (req, res, next) => {
+  // 1) Get user from collection
+  // we need to explicitly ask for the password because it is, by default, not included in the output.
+  const user = await User.findById(req.user.id).select('+password');
+
+  // 2) Check if POSTed current password is correct
+  // just like before, we're gonna use the instance object
+  // correctPassword, which is available on all the user documents
+  if (!(await user.correctPassword(req.body.passwordCurrent, user.password))) {
+    return next(new AppError('Your current password is wrong.', 401));
+  }
+
+  // 3) If so, update password
+  user.password = req.body.password;
+  user.passwordConfirm = req.body.passwordConfirm;
+  await user.save();
+  // User.findByIdAndUpdate will NOT work as intended!
+
+  // 4) Log user in, send JWT
+  createSendToken(user, 200, res);
 });
