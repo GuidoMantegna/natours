@@ -24,6 +24,31 @@ const signToken = (id) => {
 
 const createSendToken = (user, statusCode, res) => {
   const token = signToken(user._id);
+
+  const cookieOptions = {
+    /* expires will make that the browser or the client in general 
+    will delete the cookie after it has expired. Set the expiration date 
+    similar to the one that we set in the JWT */
+    expires: new Date(
+      // we need to convert it in milliseconds
+      Date.now() + process.env.JWT_COOKIE_EXPIRES_IN * 24 * 60 * 60 * 1000
+    ),
+    httpOnly: true, // the cookie cannot be accessed or modified in any way by the browser
+  };
+  // setting secure=true the cookie will be sent only on an encrypted connection (HTTPS)
+  if (process.env.NODE_ENV === 'production') cookieOptions.secure = true;
+
+  /*
+    1) attach the cookie to the response object
+    2) specify the name of the cookie (JWT)
+    3) specify the data we want to send (token)
+    4) set the options for the cookie
+  */
+  res.cookie('jwt', token, cookieOptions);
+
+  // Remove password from output
+  user.password = undefined;
+
   res.status(statusCode).json({
     status: 'success',
     // we send the token to the client
@@ -44,7 +69,7 @@ exports.signup = catchAsync(async (req, res, next) => {
     role: req.body.role,
   });
 
-  createSendToken(newUser, 201, res)
+  createSendToken(newUser, 201, res);
 });
 
 exports.login = catchAsync(async (req, res, next) => {
@@ -65,7 +90,7 @@ exports.login = catchAsync(async (req, res, next) => {
   }
 
   // 3) If everything ok, send token to client
-  createSendToken(user, 200, res)
+  createSendToken(user, 200, res);
 });
 
 // Middleware function for protected routes
