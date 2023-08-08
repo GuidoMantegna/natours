@@ -1,7 +1,7 @@
 const mongoose = require('mongoose');
 const slugify = require('slugify');
+const User = require('./userModel');
 // const validator = require('validator');
-
 
 const tourSchema = new mongoose.Schema(
   // SCHEMA DEFINITION
@@ -29,14 +29,14 @@ const tourSchema = new mongoose.Schema(
       required: [true, 'A tour must have a difficulty'],
       enum: {
         values: ['easy', 'medium', 'difficult'],
-        message: 'Difficulty is either: easy, medium, difficult'
-      }
+        message: 'Difficulty is either: easy, medium, difficult',
+      },
     },
     ratingsAverage: {
       type: Number,
       default: 4.5,
       min: [1, 'Rating must be above 1.0'],
-      max: [5, 'Rating must be below 5.0']
+      max: [5, 'Rating must be below 5.0'],
     },
     ratingsQuantity: {
       type: Number,
@@ -50,12 +50,12 @@ const tourSchema = new mongoose.Schema(
       type: Number,
       // Here we validate if the price discount is actually lower than the price itself.
       validate: {
-        validator: function(val) {
+        validator: function (val) {
           // this only points to current doc on NEW document creation
           return val < this.price;
         },
-        message: 'Discount price ({VALUE}) should be below regular price'
-      }
+        message: 'Discount price ({VALUE}) should be below regular price',
+      },
     },
     summary: {
       type: String,
@@ -81,6 +81,43 @@ const tourSchema = new mongoose.Schema(
       type: Boolean,
       default: false,
     },
+    startLocation: {
+      // GeoJSON
+      /* this object that we specified here is actually not for the schema type options, 
+      is actually really an embedded object. In order for this object to be recognized 
+      as geospatial JSON, we need the 'type' and the 'coordinates' properties. 
+      Each of these sub-fields is then gonna get its own schema type options.*/
+      type: {
+        type: String,
+        default: 'Point',
+        enum: ['Point'],
+      },
+      coordinates: [Number], // it expects an array of coordinates (1st Long. - 2nd Lat.)
+      address: String,
+      description: String,
+    },
+    locations: [
+      /* by specifying basically an array of objects, this will then create brand new documents 
+      inside of the parent document, which is, in this case, the tour. */
+      {
+        type: {
+          type: String,
+          default: 'Point',
+          enum: ['Point'],
+        },
+        coordinates: [Number],
+        address: String,
+        description: String,
+        day: Number,
+      },
+    ],
+    // guides: [
+    //   {
+    //     type: mongoose.Schema.ObjectId,
+    //     ref: 'User',
+    //   },
+    // ],
+    guides: Array,
   },
   // SCHEMA OPTIONS
   {
@@ -108,6 +145,17 @@ tourSchema.pre('save', function (next) {
    - We are gonna create a slug using slugify library
    - Here we also have next() basically to call the next middleware in the stack */
   this.slug = slugify(this.name, { lower: true });
+  next();
+});
+
+tourSchema.pre('save', async function(next) {
+  /* this is gonna be an array of all the user IDs, so we 
+  will loop through them using a .map(), and then in each iteration get the 
+  user document for the current ID */
+  const guidesPromises = this.guides.map(async id => await User.findById(id));
+  /* we need to use Promise.all here because the result of guidesPromises is 
+  gonna be an array full of promises */
+  this.guides = await Promise.all(guidesPromises);
   next();
 });
 
