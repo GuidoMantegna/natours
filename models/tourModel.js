@@ -166,12 +166,23 @@ tourSchema.pre(/^find/, function (next) {
   next();
 });
 
+/* Here we apply the populate to all the tour queries which includes 'find' */
+tourSchema.pre(/^find/, function (next) {
+  this.populate({
+    path: 'guides', // field to populate
+    select: '-__v -passwordChangedAt', // fields to filter
+  });
+  next();
+});
+
 /* this middleware is gonna run after the query has already executed. 
 And so, therefore, it can have access to the documents that were returned. */
 tourSchema.post(/^find/, function (docs, next) {
   console.log(`Query took ${Date.now() - this.start} milliseconds`);
   next();
 });
+
+
 
 // AGGREGATION MIDDLEWARE
 /* Instead of using the aggregation pipeline in each tour controller, we do it

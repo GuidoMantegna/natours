@@ -36,7 +36,7 @@ exports.getAllTours = catchAsync(async (req, res, next) => {
 });
 
 exports.getTour = catchAsync(async (req, res, next) => {
-  const tour = await Tour.findById(req.params.id); // Tour.findOne({ _id: req.params.id })
+  const tour = await Tour.findById(req.params.id)
 
   if (!tour) {
     /* we call next() with an error in order to jump straight into our error handling middleware. 
