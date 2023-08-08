@@ -1,6 +1,6 @@
 const mongoose = require('mongoose');
 const slugify = require('slugify');
-const User = require('./userModel');
+// const User = require('./userModel');
 // const validator = require('validator');
 
 const tourSchema = new mongoose.Schema(
@@ -111,13 +111,14 @@ const tourSchema = new mongoose.Schema(
         day: Number,
       },
     ],
-    // guides: [
-    //   {
-    //     type: mongoose.Schema.ObjectId,
-    //     ref: 'User',
-    //   },
-    // ],
-    guides: Array,
+    guides: [
+      {
+        // All we save on a certain tour document is the IDs of the users
+        // that are the tour guides for that specific tour.
+        type: mongoose.Schema.ObjectId, // the type of each of the elements in the guides array must be a MongoDB ID.
+        ref: 'User', // this really is how we establish references between different data sets in Mongoose.
+      },
+    ],
   },
   // SCHEMA OPTIONS
   {
@@ -148,16 +149,11 @@ tourSchema.pre('save', function (next) {
   next();
 });
 
-tourSchema.pre('save', async function(next) {
-  /* this is gonna be an array of all the user IDs, so we 
-  will loop through them using a .map(), and then in each iteration get the 
-  user document for the current ID */
-  const guidesPromises = this.guides.map(async id => await User.findById(id));
-  /* we need to use Promise.all here because the result of guidesPromises is 
-  gonna be an array full of promises */
-  this.guides = await Promise.all(guidesPromises);
-  next();
-});
+// tourSchema.pre('save', async function (next) {
+//   const guidesPromises = this.guides.map(async (id) => await User.findById(id));
+//   this.guides = await Promise.all(guidesPromises);
+//   next();
+// });
 
 // QUERY MIDDLEWARE
 /* Instead of defining a 'find' hook, we can use a RegEx to match all the commands
