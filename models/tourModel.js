@@ -137,6 +137,14 @@ tourSchema.virtual('durationWeeks').get(function () {
   return this.duration / 7;
 });
 
+// Virtual populate
+tourSchema.virtual('reviews', {
+  ref: 'Review',
+  /* this is the name of the field in the other model (Review.tour) where the reference to the current model is stored */
+  foreignField: 'tour', 
+  localField: '_id'
+});
+
 // DOCUMENT MIDDLEWARE: runs ONLY before .save() and .create()
 /* - 'pre' for pre middleware which is gonna run before an actual event.
  - that event in this case is the 'save' event.

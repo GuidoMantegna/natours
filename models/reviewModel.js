@@ -39,9 +39,6 @@ reviewSchema.pre(/^find/, function (next) {
   this.populate({
     path: 'user', // prop to populate
     select: 'name photo', // field to get
-  }).populate({
-    path: 'tour',
-    select: 'name' // field to get
   });
   next();
 });
