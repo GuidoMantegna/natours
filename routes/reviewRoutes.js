@@ -5,7 +5,7 @@ const authController = require('../controllers/authController');
 const reviewController = require('../controllers/reviewController');
 
 // CREATE THE ROUTER
-const router = express.Router();
+const router = express.Router({ mergeParams: true });
 
 router
   .route('/')
