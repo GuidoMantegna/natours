@@ -7,6 +7,7 @@ const {
   deleteUser,
   updateMe,
   deleteMe,
+  getMe,
 } = require('../controllers/userController');
 const authController = require('./../controllers/authController');
 
@@ -22,6 +23,13 @@ router.patch(
   authController.protect, // only for auth. users
   authController.updatePassword
 );
+
+/*
+1) .protect will then add the user to the current req., which will then allow us to read the ID from that user
+2) .getMe puts that userId into the params (basically faking that the ID is actually coming from the URL)
+3) finally we can use getUser   
+*/
+router.get('/me', authController.protect, getMe, getUser);
 router.patch(
   '/updateMe',
   authController.protect, // only for auth. users
