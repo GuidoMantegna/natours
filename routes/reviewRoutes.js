@@ -13,8 +13,14 @@ router
   .post(
     authController.protect,
     authController.restrictTo('user'), // Only users with "role: 'user'" can write reviews
+    reviewController.setTourUserIds,
     reviewController.createReview
   );
+
+router
+  .route('/:id')
+  .patch(reviewController.updateReview)
+  .delete(reviewController.deleteReview);
 
 // EXPORT ALL THE ROUTERS
 module.exports = router;
