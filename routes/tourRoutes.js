@@ -1,19 +1,8 @@
 const express = require('express');
 
 // IMPORT CONTROLLERS
-const {
-  getTour,
-  getAllTours,
-  createTour,
-  updateTour,
-  deleteTour,
-  aliasTopTours,
-  getTourStats,
-  getMonthlyPlan,
-} = require('../controllers/tourController');
-
+const tourController = require('../controllers/tourController');
 const authController = require('./../controllers/authController');
-const reviewController = require('./../controllers/reviewController');
 const reviewRouter = require('./../routes/reviewRoutes');
 
 // CREATE THE ROUTER
@@ -27,20 +16,44 @@ router.use('/:tourId/reviews', reviewRouter);
 
 /* Before we call getAllTours from the tours controller, 
 we use a middleware that can actually manipulate and filter the tours */
-router.route('/top-5-cheap').get(aliasTopTours, getAllTours);
+router
+  .route('/top-5-cheap')
+  .get(tourController.aliasTopTours, tourController.getAllTours);
 
-router.route('/tour-stats').get(getTourStats);
-router.route('/monthly-plan/:year').get(getMonthlyPlan);
+router.route('/tour-stats').get(tourController.getTourStats);
 
-router.route('/').get(authController.protect, getAllTours).post(createTour);
+router
+  .route('/monthly-plan/:year')
+  .get(
+    authController.protect,
+    authController.restrictTo('admin', 'lead-guide'),
+    tourController.getMonthlyPlan
+  );
 
-router.route('/:id').get(getTour).patch(updateTour).delete(
-  // authentication
-  authController.protect,
-  // authorization
-  authController.restrictTo('admin', 'lead-guide'),
-  deleteTour
-);
+router
+  .route('/')
+  .get(tourController.getAllTours)
+  .post(
+    authController.protect,
+    authController.restrictTo('admin', 'lead-guide'),
+    tourController.createTour
+  );
+
+router
+  .route('/:id')
+  .get(tourController.getTour)
+  .patch(
+    tourController.updateTour,
+    authController.protect,
+    authController.restrictTo('admin', 'lead-guide')
+  )
+  .delete(
+    // authentication
+    authController.protect,
+    // authorization
+    authController.restrictTo('admin', 'lead-guide'),
+    tourController.deleteTour
+  );
 
 // EXPORT ALL THE ROUTERS
 module.exports = router;

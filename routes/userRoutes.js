@@ -1,48 +1,34 @@
 const express = require('express');
-const {
-  getAllusers,
-  getUser,
-  createUser,
-  updateUser,
-  deleteUser,
-  updateMe,
-  deleteMe,
-  getMe,
-} = require('../controllers/userController');
+const userController = require('../controllers/userController');
 const authController = require('./../controllers/authController');
 
 const router = express.Router();
 
 router.post('/signup', authController.signup);
 router.post('/login', authController.login);
-
 router.post('/forgotPassword', authController.forgotPassword);
 router.patch('/resetPassword/:token', authController.resetPassword);
-router.patch(
-  '/updateMyPassword',
-  authController.protect, // only for auth. users
-  authController.updatePassword
-);
 
-/*
-1) .protect will then add the user to the current req., which will then allow us to read the ID from that user
-2) .getMe puts that userId into the params (basically faking that the ID is actually coming from the URL)
-3) finally we can use getUser   
-*/
-router.get('/me', authController.protect, getMe, getUser);
-router.patch(
-  '/updateMe',
-  authController.protect, // only for auth. users
-  updateMe
-);
-router.delete(
-  '/deleteMe',
-  authController.protect, // only for auth. users
-  deleteMe
-);
+// protect all the routes that come after this point.
+router.use(authController.protect);
 
-router.route('/').get(getAllusers).post(createUser);
+router.patch('/updateMyPassword', authController.updatePassword);
+router.get('/me', userController.getMe, userController.getUser);
+router.patch('/updateMe', userController.updateMe);
+router.delete('/deleteMe', userController.deleteMe);
 
-router.route('/:id').get(getUser).patch(updateUser).delete(deleteUser);
+// restrict all the routes that come after this point to only admins.
+router.use(authController.restrictTo('admin'));
+
+router
+  .route('/')
+  .get(userController.getAllusers)
+  .post(userController.createUser);
+
+router
+  .route('/:id')
+  .get(userController.getUser)
+  .patch(userController.updateUser)
+  .delete(userController.deleteUser);
 
 module.exports = router;
