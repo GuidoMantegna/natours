@@ -127,6 +127,11 @@ const tourSchema = new mongoose.Schema(
   }
 );
 
+/* Add indexes to the tour to improve filtering performance */
+// tourSchema.index({ price: 1 });
+tourSchema.index({ price: 1, ratingsAverage: -1 });
+tourSchema.index({ slug: 1 });
+
 // VIRTUAL PROPERTIES
 /* - this virtual property here will basically be created each time
  that we get some data out of the database. 
@@ -141,8 +146,8 @@ tourSchema.virtual('durationWeeks').get(function () {
 tourSchema.virtual('reviews', {
   ref: 'Review',
   /* this is the name of the field in the other model (Review.tour) where the reference to the current model is stored */
-  foreignField: 'tour', 
-  localField: '_id'
+  foreignField: 'tour',
+  localField: '_id',
 });
 
 // DOCUMENT MIDDLEWARE: runs ONLY before .save() and .create()
@@ -189,8 +194,6 @@ tourSchema.post(/^find/, function (docs, next) {
   console.log(`Query took ${Date.now() - this.start} milliseconds`);
   next();
 });
-
-
 
 // AGGREGATION MIDDLEWARE
 /* Instead of using the aggregation pipeline in each tour controller, we do it
