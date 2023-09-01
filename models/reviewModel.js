@@ -35,6 +35,9 @@ const reviewSchema = new mongoose.Schema(
   }
 );
 
+/* each combination of tour and user has always to be unique. */
+reviewSchema.index({ tour: 1, user: 1 }, { unique: true });
+
 /* Here we apply the populate to all the review queries which include 'find' */
 reviewSchema.pre(/^find/, function (next) {
   this.populate({
@@ -65,16 +68,38 @@ reviewSchema.statics.calcAverageRatings = async function (tourId) {
   console.log(stats);
 
   // Find the current tour and update it
-  await Tour.findByIdAndUpdate(tourId, {
-    ratingsQuantity: stats[0].nRating,
-    ratingsAverage: stats[0].avgRating,
-  });
+  if (stats.length > 0) {
+    await Tour.findByIdAndUpdate(tourId, {
+      ratingsQuantity: stats[0].nRating,
+      ratingsAverage: stats[0].avgRating,
+    });
+  } else {
+    await Tour.findByIdAndUpdate(tourId, {
+      ratingsQuantity: 0,
+      ratingsAverage: 4.5,
+    });
+  }
 };
 
 reviewSchema.post('save', function () {
   // this points to current review
   // the constructor is basically the model who created that document (Model).
   this.constructor.calcAverageRatings(this.tour);
+});
+
+// findByIdAndUpdate
+// findByIdAndDelete
+reviewSchema.pre(/^findOneAnd/, async function (next) {
+  /* here "this" is the current query. We can basically execute a query,
+  and then that will give us the document that's currently being processed. */
+  this.r = await this.findOne(); // Using this.r we can pass the review to the post middleware
+  // console.log(this.r);
+  next();
+});
+
+reviewSchema.post(/^findOneAnd/, async function () {
+  // await this.findOne(); does NOT work here, query has already executed
+  await this.r.constructor.calcAverageRatings(this.r.tour);
 });
 
 const Review = mongoose.model('Review', reviewSchema);
