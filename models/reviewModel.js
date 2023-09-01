@@ -35,6 +35,9 @@ const reviewSchema = new mongoose.Schema(
   }
 );
 
+/* each combination of tour and user has always to be unique. */
+reviewSchema.index({ tour: 1, user: 1 }, { unique: true });
+
 /* Here we apply the populate to all the review queries which include 'find' */
 reviewSchema.pre(/^find/, function (next) {
   this.populate({
@@ -64,7 +67,6 @@ reviewSchema.statics.calcAverageRatings = async function (tourId) {
   ]);
   console.log(stats);
 
-
   // Find the current tour and update it
   if (stats.length > 0) {
     await Tour.findByIdAndUpdate(tourId, {
@@ -87,7 +89,7 @@ reviewSchema.post('save', function () {
 
 // findByIdAndUpdate
 // findByIdAndDelete
-reviewSchema.pre(/^findOneAnd/, async function(next) {
+reviewSchema.pre(/^findOneAnd/, async function (next) {
   /* here "this" is the current query. We can basically execute a query,
   and then that will give us the document that's currently being processed. */
   this.r = await this.findOne(); // Using this.r we can pass the review to the post middleware
@@ -95,7 +97,7 @@ reviewSchema.pre(/^findOneAnd/, async function(next) {
   next();
 });
 
-reviewSchema.post(/^findOneAnd/, async function() {
+reviewSchema.post(/^findOneAnd/, async function () {
   // await this.findOne(); does NOT work here, query has already executed
   await this.r.constructor.calcAverageRatings(this.r.tour);
 });
