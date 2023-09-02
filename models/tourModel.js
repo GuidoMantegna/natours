@@ -133,6 +133,10 @@ const tourSchema = new mongoose.Schema(
 // tourSchema.index({ price: 1 });
 tourSchema.index({ price: 1, ratingsAverage: -1 });
 tourSchema.index({ slug: 1 });
+/* for geospatial data, this index needs to be a 2D sphere index 
+if the data describes real points on the Earth like sphere. Or instead, 
+we can also use a 2D index if we're using just fictional points on a simple two dimensional plane. */
+tourSchema.index({ startLocation: '2dsphere' });
 
 // VIRTUAL PROPERTIES
 /* - this virtual property here will basically be created each time
