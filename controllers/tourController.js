@@ -134,3 +134,51 @@ exports.getToursWithin = catchAsync(async (req, res, next) => {
     }
   });
 });
+
+exports.getDistances = catchAsync(async (req, res, next) => {
+  const { latlng, unit } = req.params;
+  const [lat, lng] = latlng.split(',');
+
+  const multiplier = unit === 'mi' ? 0.000621371 : 0.001;
+
+  if (!lat || !lng) {
+    next(
+      new AppError(
+        'Please provide latitude and longitude in the format lat,lng.',
+        400
+      )
+    );
+  }
+
+  /* Here we passed in an array with all the stages of the aggregation pipeline that we want to define. */
+  const distances = await Tour.aggregate([
+    {
+      /* for geospatial aggregation, there's actually only one single stage: geoNear 
+      🚨 it always needs to be the first one in the pipeline
+      🚨 it requires at least one of our fields contains a geospatial index */
+      $geoNear: {
+        // near is the point from which to calculate the distances
+        near: {
+          type: 'Point',
+          coordinates: [lng * 1, lat * 1]
+        },
+        distanceField: 'distance',
+        distanceMultiplier: multiplier
+      }
+    },
+    {
+      // with $project we can define the name of the fields that we want to keep
+      $project: {
+        distance: 1,
+        name: 1
+      }
+    }
+  ]);
+
+  res.status(200).json({
+    status: 'success',
+    data: {
+      data: distances
+    }
+  });
+});

@@ -205,12 +205,12 @@ tourSchema.post(/^find/, function (docs, next) {
 /* Instead of using the aggregation pipeline in each tour controller, we do it
 here in the model to apply it for all of them.
 in aggregation middleware 'this' is going to point to the current aggregation object. */
-tourSchema.pre('aggregate', function (next) {
-  // It will removes from the outputs all the documents that have secretTour set to true
-  this.pipeline().unshift({ $match: { secretTour: { $ne: true } } });
-  console.log(this.pipeline());
-  next();
-});
+// tourSchema.pre('aggregate', function (next) {
+//   // It will removes from the outputs all the documents that have secretTour set to true
+//   this.pipeline().unshift({ $match: { secretTour: { $ne: true } } });
+//   console.log(this.pipeline());
+//   next();
+// });
 
 // MODEL
 // NAME, SCHEMA - model name (tour) should be with an uppercase "T" as a convention
