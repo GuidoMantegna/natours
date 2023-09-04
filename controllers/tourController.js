@@ -1,6 +1,7 @@
 const Tour = require('./../models/tourModel');
 const catchAsync = require('./../utils/catchAsync');
 const factory = require('./handlerFactory');
+const AppError = require('./../utils/appError')
 
 exports.aliasTopTours = (req, res, next) => {
   // 1st we set the qty of results
@@ -97,5 +98,87 @@ exports.getMonthlyPlan = catchAsync(async (req, res, next) => {
     data: {
       plan,
     },
+  });
+});
+
+// /tours-within/:distance/center/:latlng/unit/:unit
+// /tours-within/233/center/34.111745,-118.113491/unit/mi
+exports.getToursWithin = catchAsync(async (req, res, next) => {
+  const { distance, latlng, unit } = req.params;
+  const [lat, lng] = latlng.split(',');
+
+  const radius = unit === 'mi' ? distance / 3963.2 : distance / 6378.1;
+
+  if (!lat || !lng) {
+    next(
+      new AppError(
+        'Please provide latitude and longitude in the format lat,lng.',
+        400
+      )
+    );
+  }
+  // console.log(distance, lat, lng, unit)
+  const tours = await Tour.find({
+    /* in the filter object we want to query for 'startLocation':
+    - The startLocation field is what holds the geospatial point where each tour starts.
+    - Then, we use geospatial operator 'geoWithin'. It finds documents within a certain geometry.
+    - That geometry is what we need to define as a next step  */
+    startLocation: { $geoWithin: { $centerSphere: [[lng, lat], radius] } }
+  });
+
+  res.status(200).json({
+    status: 'success',
+    results: tours.length,
+    data: {
+      data: tours
+    }
+  });
+});
+
+exports.getDistances = catchAsync(async (req, res, next) => {
+  const { latlng, unit } = req.params;
+  const [lat, lng] = latlng.split(',');
+
+  const multiplier = unit === 'mi' ? 0.000621371 : 0.001;
+
+  if (!lat || !lng) {
+    next(
+      new AppError(
+        'Please provide latitude and longitude in the format lat,lng.',
+        400
+      )
+    );
+  }
+
+  /* Here we passed in an array with all the stages of the aggregation pipeline that we want to define. */
+  const distances = await Tour.aggregate([
+    {
+      /* for geospatial aggregation, there's actually only one single stage: geoNear 
+      🚨 it always needs to be the first one in the pipeline
+      🚨 it requires at least one of our fields contains a geospatial index */
+      $geoNear: {
+        // near is the point from which to calculate the distances
+        near: {
+          type: 'Point',
+          coordinates: [lng * 1, lat * 1]
+        },
+        distanceField: 'distance',
+        distanceMultiplier: multiplier
+      }
+    },
+    {
+      // with $project we can define the name of the fields that we want to keep
+      $project: {
+        distance: 1,
+        name: 1
+      }
+    }
+  ]);
+
+  res.status(200).json({
+    status: 'success',
+    data: {
+      data: distances
+    }
   });
 });

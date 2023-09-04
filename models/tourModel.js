@@ -133,6 +133,10 @@ const tourSchema = new mongoose.Schema(
 // tourSchema.index({ price: 1 });
 tourSchema.index({ price: 1, ratingsAverage: -1 });
 tourSchema.index({ slug: 1 });
+/* for geospatial data, this index needs to be a 2D sphere index 
+if the data describes real points on the Earth like sphere. Or instead, 
+we can also use a 2D index if we're using just fictional points on a simple two dimensional plane. */
+tourSchema.index({ startLocation: '2dsphere' });
 
 // VIRTUAL PROPERTIES
 /* - this virtual property here will basically be created each time
@@ -201,12 +205,12 @@ tourSchema.post(/^find/, function (docs, next) {
 /* Instead of using the aggregation pipeline in each tour controller, we do it
 here in the model to apply it for all of them.
 in aggregation middleware 'this' is going to point to the current aggregation object. */
-tourSchema.pre('aggregate', function (next) {
-  // It will removes from the outputs all the documents that have secretTour set to true
-  this.pipeline().unshift({ $match: { secretTour: { $ne: true } } });
-  console.log(this.pipeline());
-  next();
-});
+// tourSchema.pre('aggregate', function (next) {
+//   // It will removes from the outputs all the documents that have secretTour set to true
+//   this.pipeline().unshift({ $match: { secretTour: { $ne: true } } });
+//   console.log(this.pipeline());
+//   next();
+// });
 
 // MODEL
 // NAME, SCHEMA - model name (tour) should be with an uppercase "T" as a convention
