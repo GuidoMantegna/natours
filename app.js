@@ -1,4 +1,4 @@
-const path = require('path')
+const path = require('path');
 const express = require('express');
 const morgan = require('morgan');
 const rateLimit = require('express-rate-limit');
@@ -74,8 +74,11 @@ app.use((req, res, next) => {
 // 2. ROUTES
 app.get('/', (req, res) => {
   // render will then render the template with the name that we pass in
-  res.status(200).render('base')
-})
+  res.status(200).render('base', {
+    tour: 'The Forest Hiker',
+    user: 'Jonas',
+  });
+});
 
 app.use('/api/v1/tours', tourRouter);
 app.use('/api/v1/users', userRouter);
