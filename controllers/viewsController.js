@@ -11,7 +11,7 @@ exports.getOverview = catchAsync(async (req, res, next) => {
   // 3) Render that template using tour data from 1)
   res.status(200).render('overview', {
     title: 'All Tours',
-    tours
+    tours,
   });
 });
 
@@ -20,7 +20,7 @@ exports.getTour = catchAsync(async (req, res, next) => {
   // slug is gonna be the tour name: /tour/the-sports-lover
   const tour = await Tour.findOne({ slug: req.params.slug }).populate({
     path: 'reviews', // here we populate reviews
-    fields: 'review rating user' // we only req for these 3 fields
+    fields: 'review rating user', // we only req for these 3 fields
   });
 
   if (!tour) {
@@ -31,6 +31,12 @@ exports.getTour = catchAsync(async (req, res, next) => {
   // 3) Render template using data from 1)
   res.status(200).render('tour', {
     title: `${tour.name} Tour`,
-    tour
+    tour,
   });
-})
+});
+
+exports.getLoginForm = (req, res) => {
+  res.status(200).render('login', {
+    title: 'Log into your account',
+  });
+};
