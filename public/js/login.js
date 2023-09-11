@@ -10,8 +10,17 @@ const login = async (email, password) => {
         password,
       },
     });
+
+    if (res.data.status === 'success') {
+      alert('success', 'Logged in successfully!');
+      // showAlert('success', 'Logged in successfully!');
+      window.setTimeout(() => {
+        location.assign('/');
+      }, 1500);
+    }
   } catch (err) {
-    showAlert('error', err.response.data.message);
+    alert('error', err.response.data.message);
+    // showAlert('error', err.response.data.message);
   }
 };
 
