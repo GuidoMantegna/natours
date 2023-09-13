@@ -39,11 +39,17 @@ exports.getLoginForm = (req, res) => {
   res
     .status(200)
     // Temporary security set for AXIOS by CDN
-    // .set(
-    //   'Content-Security-Policy',
-    //   "connect-src 'self' https://cdnjs.cloudflare.com"
-    // )
+    .set(
+      'Content-Security-Policy',
+      "connect-src 'self' https://cdnjs.cloudflare.com"
+    )
     .render('login', {
       title: 'Log into your account',
     });
+};
+
+exports.getAccount = (req, res) => {
+  res.status(200).render('account', {
+    title: 'Your account'
+  });
 };
