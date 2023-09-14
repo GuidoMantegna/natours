@@ -18,7 +18,6 @@ const viewRouter = require('./routes/viewRoutes');
 
 const app = express();
 
-
 // GLOBAL MIDDLEWARES
 // Serving static files
 /* here we pass the directory from which we want to serve static files. */
@@ -33,11 +32,23 @@ const scriptSrcUrls = ['https://unpkg.com/', 'https://tile.openstreetmap.org'];
 const styleSrcUrls = [
   'https://unpkg.com/',
   'https://tile.openstreetmap.org',
-  'https://fonts.googleapis.com/'
+  'https://fonts.googleapis.com/',
 ];
-const connectSrcUrls = ['https://unpkg.com', 'https://tile.openstreetmap.org'];
+const connectSrcUrls = [
+  'https://unpkg.com',
+  'https://tile.openstreetmap.org',
+  "'self'",
+  "'unsafe-inline'",
+  'data:',
+  'blob:',
+  'https://*.stripe.com',
+  'https://*.mapbox.com',
+  'https://*.cloudflare.com/',
+  'https://bundle.js:*',
+  'ws://127.0.0.1:*/',
+];
 const fontSrcUrls = ['fonts.googleapis.com', 'fonts.gstatic.com'];
- 
+
 app.use(
   helmet.contentSecurityPolicy({
     directives: {
@@ -48,8 +59,8 @@ app.use(
       workerSrc: ["'self'", 'blob:'],
       objectSrc: [],
       imgSrc: ["'self'", 'blob:', 'data:', 'https:'],
-      fontSrc: ["'self'", ...fontSrcUrls]
-    }
+      fontSrc: ["'self'", ...fontSrcUrls],
+    },
   })
   // helmet({
   //   contentSecurityPolicy: {
@@ -92,7 +103,7 @@ app.use(
   //         'https://*.cloudflare.com/',
   //         'https://bundle.js:*',
   //         'ws://127.0.0.1:*/',
- 
+
   //       ],
   //       upgradeInsecureRequests: [],
   //     },
@@ -121,9 +132,9 @@ app.use('/api', limiter);
 
 // Body parser, reading data from body into req.body
 app.use(express.json({ limit: '10kb' }));
-app.use(express.urlencoded({ extended: true, limit: '10kb' }))
+app.use(express.urlencoded({ extended: true, limit: '10kb' }));
 // Parse the data from cookies
-app.use(cookieParser())
+app.use(cookieParser());
 
 // Data sanitization against NoSQL query injection
 app.use(mongoSanitize());
