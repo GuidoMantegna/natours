@@ -5669,6 +5669,7 @@ var updateSettings = function updateSettings(_x, _x2) {
 };
 exports.updateSettings = updateSettings;
 },{"axios":"../../node_modules/axios/index.js","./alerts":"alerts.js"}],"index.js":[function(require,module,exports) {
+var define;
 "use strict";
 
 var _login = require("./login");
@@ -5700,12 +5701,13 @@ if (loginForm) loginForm.addEventListener('submit', function (e) {
 if (logOutBtn) logOutBtn.addEventListener('click', _login.logout);
 if (userDataForm) userDataForm.addEventListener('submit', function (e) {
   e.preventDefault();
-  var name = document.getElementById('name').value;
-  var email = document.getElementById('email').value;
-  (0, _updateSettings.updateSettings)({
-    name: name,
-    email: email
-  }, 'data');
+  // in order to process the photo, we kind of needed to programmatically recreate a multi-part form data
+  var form = new FormData();
+  form.append('name', document.getElementById('name').value);
+  form.append('email', document.getElementById('email').value);
+  form.append('photo', document.getElementById('photo').files[0]);
+  console.log(form);
+  (0, _updateSettings.updateSettings)(form, 'data');
 });
 if (userPasswordForm) userPasswordForm.addEventListener('submit', function (_x) {
   return (_ref = _ref || _asyncToGenerator( /*#__PURE__*/_regeneratorRuntime().mark(function _callee(e) {
