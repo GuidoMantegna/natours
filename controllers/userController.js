@@ -1,21 +1,20 @@
 const multer = require('multer');
+const sharp = require('sharp');
 const User = require('./../models/userModel');
 const AppError = require('./../utils/appError');
 const catchAsync = require('./../utils/catchAsync');
 const factory = require('./handlerFactory');
 
-const multerStorage = multer.diskStorage({
-  destination: (req, file, cb) => { 
-    /* cb stands for 'callback': 
-    the first argument is an error if there is one, and if not, then just null.
-    the second argument is the actual destination.*/
-    cb(null, 'public/img/users');
-  },
-  filename: (req, file, cb) => {
-    const ext = file.mimetype.split('/')[1];
-    cb(null, `user-${req.user.id}-${Date.now()}.${ext}`); // user-98839dijd98-546546654.jpg
-  }
-});
+// const multerStorage = multer.diskStorage({
+//   destination: (req, file, cb) => {
+//     cb(null, 'public/img/users');
+//   },
+//   filename: (req, file, cb) => {
+//     const ext = file.mimetype.split('/')[1];
+//     cb(null, `user-${req.user.id}-${Date.now()}.${ext}`); // user-98839dijd98-546546654.jpg
+//   }
+// });
+const multerStorage = multer.memoryStorage();
 
 /* the goal here is basically to test if the uploaded file is an image.
 If it is so, then we pass true into the callback(),
@@ -30,10 +29,25 @@ const multerFilter = (req, file, cb) => {
 
 const upload = multer({
   storage: multerStorage,
-  fileFilter: multerFilter
+  fileFilter: multerFilter,
 });
 
 exports.uploadUserPhoto = upload.single('photo');
+
+exports.resizeUserPhoto = catchAsync(async (req, res, next) => {
+  if (!req.file) return next();
+
+  req.file.filename = `user-${req.user.id}-${Date.now()}.jpeg`;
+
+  await sharp(req.file.buffer)
+    .resize(500, 500)
+    .toFormat('jpeg')
+    .jpeg({ quality: 90 })
+    // finally want to write it to a file on our disk.
+    .toFile(`public/img/users/${req.file.filename}`);
+
+  next();
+});
 
 const filterObj = (obj, ...allowedFields) => {
   const newObj = {};
@@ -48,7 +62,7 @@ exports.getMe = (req, res, next) => {
   doesn't receives that param, so we can set it using req.user.id */
   req.params.id = req.user.id;
   next();
-}
+};
 
 exports.updateMe = catchAsync(async (req, res, next) => {
   // 1) Create error if user POSTs password data
