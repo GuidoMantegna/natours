@@ -1,7 +1,63 @@
+const multer = require('multer');
+const sharp = require('sharp');
 const Tour = require('./../models/tourModel');
 const catchAsync = require('./../utils/catchAsync');
 const factory = require('./handlerFactory');
-const AppError = require('./../utils/appError')
+const AppError = require('./../utils/appError');
+
+const multerStorage = multer.memoryStorage();
+
+const multerFilter = (req, file, cb) => {
+  if (file.mimetype.startsWith('image')) {
+    cb(null, true);
+  } else {
+    cb(new AppError('Not an image! Please upload only images.', 400), false);
+  }
+};
+
+const upload = multer({
+  storage: multerStorage,
+  fileFilter: multerFilter,
+});
+
+exports.uploadTourImages = upload.fields([
+  { name: 'imageCover', maxCount: 1 },
+  { name: 'images', maxCount: 3 },
+]);
+
+// upload.single('image') req.file
+// upload.array('images', 5) req.files
+
+exports.resizeTourImages = catchAsync(async (req, res, next) => {
+  if (!req.files.imageCover || !req.files.images) return next();
+
+  // 1) Cover image
+  req.body.imageCover = `tour-${req.params.id}-${Date.now()}-cover.jpeg`;
+  await sharp(req.files.imageCover[0].buffer)
+    .resize(2000, 1333)
+    .toFormat('jpeg')
+    .jpeg({ quality: 90 })
+    .toFile(`public/img/tours/${req.body.imageCover}`);
+
+  // 2) Images
+  req.body.images = [];
+
+  await Promise.all(
+    req.files.images.map(async (file, i) => {
+      const filename = `tour-${req.params.id}-${Date.now()}-${i + 1}.jpeg`;
+
+      await sharp(file.buffer)
+        .resize(2000, 1333)
+        .toFormat('jpeg')
+        .jpeg({ quality: 90 })
+        .toFile(`public/img/tours/${filename}`);
+
+      req.body.images.push(filename);
+    })
+  );
+
+  next();
+});
 
 exports.aliasTopTours = (req, res, next) => {
   // 1st we set the qty of results
@@ -123,15 +179,15 @@ exports.getToursWithin = catchAsync(async (req, res, next) => {
     - The startLocation field is what holds the geospatial point where each tour starts.
     - Then, we use geospatial operator 'geoWithin'. It finds documents within a certain geometry.
     - That geometry is what we need to define as a next step  */
-    startLocation: { $geoWithin: { $centerSphere: [[lng, lat], radius] } }
+    startLocation: { $geoWithin: { $centerSphere: [[lng, lat], radius] } },
   });
 
   res.status(200).json({
     status: 'success',
     results: tours.length,
     data: {
-      data: tours
-    }
+      data: tours,
+    },
   });
 });
 
@@ -160,25 +216,25 @@ exports.getDistances = catchAsync(async (req, res, next) => {
         // near is the point from which to calculate the distances
         near: {
           type: 'Point',
-          coordinates: [lng * 1, lat * 1]
+          coordinates: [lng * 1, lat * 1],
         },
         distanceField: 'distance',
-        distanceMultiplier: multiplier
-      }
+        distanceMultiplier: multiplier,
+      },
     },
     {
       // with $project we can define the name of the fields that we want to keep
       $project: {
         distance: 1,
-        name: 1
-      }
-    }
+        name: 1,
+      },
+    },
   ]);
 
   res.status(200).json({
     status: 'success',
     data: {
-      data: distances
-    }
+      data: distances,
+    },
   });
 });
