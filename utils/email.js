@@ -1,6 +1,7 @@
 const nodemailer = require('nodemailer');
 const pug = require('pug');
-const htmlToText = require('html-to-text');
+const { htmlToText } = require('html-to-text');
+// import { htmlToText } from 'html-to-text'
 
 module.exports = class Email {
   constructor(user, url) {
@@ -48,7 +49,8 @@ module.exports = class Email {
       html,
       /* include a text version of our email into the email. It's better
       for email delivery rates and also for spam folders. */
-      text: htmlToText.fromString(html),
+      // text: htmlToText.fromString(html),
+      text: htmlToText(html),
     };
 
     // 3) Create a transport and send email
