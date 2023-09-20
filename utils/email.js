@@ -13,8 +13,14 @@ module.exports = class Email {
 
   newTransport() {
     if (process.env.NODE_ENV === 'production') {
-      // Sendgrid
-      return 1;
+      // Sendinblue
+      return nodemailer.createTransport({
+        service: 'SendinBlue',
+        auth: {
+          user: process.env.BREVO_USERNAME, //'YOUR LOGIN NAME'
+          pass: process.env.BREVO_PASSWORD, //'YOUR SMTP KEY'
+        },
+      });
     }
 
     // 1) Create a transporter
