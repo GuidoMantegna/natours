@@ -29,10 +29,16 @@ exports.getTour = catchAsync(async (req, res, next) => {
 
   // 2) Build template
   // 3) Render template using data from 1)
-  res.status(200).render('tour', {
-    title: `${tour.name} Tour`,
-    tour,
-  });
+  res
+    .status(200)
+    .set(
+      'Content-Security-Policy',
+      "default-src * self blob: data: gap:; style-src * self 'unsafe-inline' blob: data: gap:; script-src * 'self' 'unsafe-eval' 'unsafe-inline' blob: data: gap:; object-src * 'self' blob: data: gap:; img-src * self 'unsafe-inline' blob: data: gap:; connect-src self * 'unsafe-inline' blob: data: gap:; frame-src * self blob: data: gap:;"
+    )
+    .render('tour', {
+      title: `${tour.name} Tour`,
+      tour,
+    });
 });
 
 exports.getLoginForm = (req, res) => {
@@ -50,7 +56,7 @@ exports.getLoginForm = (req, res) => {
 
 exports.getAccount = (req, res) => {
   res.status(200).render('account', {
-    title: 'Your account'
+    title: 'Your account',
   });
 };
 
@@ -59,16 +65,16 @@ exports.updateUserData = catchAsync(async (req, res, next) => {
     req.user.id,
     {
       name: req.body.name,
-      email: req.body.email
+      email: req.body.email,
     },
     {
       new: true, // get the new updated document
-      runValidators: true
+      runValidators: true,
     }
   );
 
   res.status(200).render('account', {
     title: 'Your account',
-    user: updatedUser
+    user: updatedUser,
   });
 });
