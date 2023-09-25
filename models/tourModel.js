@@ -196,10 +196,10 @@ tourSchema.pre(/^find/, function (next) {
 
 /* this middleware is gonna run after the query has already executed. 
 And so, therefore, it can have access to the documents that were returned. */
-tourSchema.post(/^find/, function (docs, next) {
-  console.log(`Query took ${Date.now() - this.start} milliseconds`);
-  next();
-});
+// tourSchema.post(/^find/, function (docs, next) {
+//   console.log(`Query took ${Date.now() - this.start} milliseconds`);
+//   next();
+// });
 
 // AGGREGATION MIDDLEWARE
 /* Instead of using the aggregation pipeline in each tour controller, we do it
