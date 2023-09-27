@@ -16,7 +16,7 @@ It will read our variables from the file and save them into node JS environment 
 dotenv.config({ path: './config.env' });
 
 // IMPORT APP
-const app = require('./app');
+const app = require('.');
 
 // This env is set by Express
 console.log(app.get('env'));
