@@ -1,192 +1,74 @@
-const path = require('path');
-const express = require('express');
-const morgan = require('morgan');
-const rateLimit = require('express-rate-limit');
-const helmet = require('helmet');
-const mongoSanitize = require('express-mongo-sanitize');
-const xss = require('xss-clean');
-const hpp = require('hpp');
-const cookieParser = require('cookie-parser');
-const compression = require('compression');
+// 1st we require our mongoose package
+const mongoose = require('mongoose');
+// Require dotenv to consume the config.env file
+const dotenv = require('dotenv');
 
-const AppError = require('./utils/appError');
-const globalErrorHandler = require('./controllers/errorController');
-// ROUTERS
-const tourRouter = require('./routes/tourRoutes');
-const userRouter = require('./routes/userRoutes');
-const reviewRouter = require('./routes/reviewRoutes');
-const bookingRouter = require('./routes/bookingRoutes');
-const viewRouter = require('./routes/viewRoutes');
+// UNCAUGHT EXCEPTIONS
+process.on('uncaughtException', err => {
+  console.log('UNCAUGHT EXCEPTION 💥 Shutting down...');
+  console.log(err.name, err.message)
+  process.exit(1); // Code one stands for uncaught exception.
+})
 
-const app = express();
+/* dotenv has a variable called config on it and then in there we just have
+to pass an object to specify the path where our configuration file is located.
+It will read our variables from the file and save them into node JS environment variables.*/
+dotenv.config({ path: './config.env' });
 
-// GLOBAL MIDDLEWARES
-// Serving static files
-/* here we pass the directory from which we want to serve static files. */
-app.use(express.static(path.join(__dirname, 'public')));
+// IMPORT APP
+const app = require('./app');
 
-// Set security HTTP headers
-app.use(helmet());
+// This env is set by Express
+console.log(app.get('env'));
 
-// LEAFLET CONFIG ----------------------------
-// Further HELMET configuration for Security Policy (CSP)
-const scriptSrcUrls = ['https://unpkg.com/', 'https://tile.openstreetmap.org'];
-const styleSrcUrls = [
-  'https://unpkg.com/',
-  'https://tile.openstreetmap.org',
-  'https://fonts.googleapis.com/',
-];
-const connectSrcUrls = [
-  'https://unpkg.com',
-  'https://tile.openstreetmap.org',
-  "'self'",
-  "'unsafe-inline'",
-  'data:',
-  'blob:',
-  'https://*.stripe.com',
-  'https://*.mapbox.com',
-  'https://*.cloudflare.com/',
-  'https://bundle.js:*',
-  'ws://127.0.0.1:*/',
-];
-const fontSrcUrls = ['fonts.googleapis.com', 'fonts.gstatic.com'];
-
-app.use(
-  helmet.contentSecurityPolicy({
-    directives: {
-      defaultSrc: [],
-      connectSrc: ["'self'", ...connectSrcUrls],
-      scriptSrc: ["'self'", ...scriptSrcUrls],
-      styleSrc: ["'self'", "'unsafe-inline'", ...styleSrcUrls],
-      workerSrc: ["'self'", 'blob:'],
-      objectSrc: [],
-      imgSrc: ["'self'", 'blob:', 'data:', 'https:'],
-      fontSrc: ["'self'", ...fontSrcUrls],
-    },
-  })
-  // helmet({
-  //   contentSecurityPolicy: {
-  //     directives: {
-  //       defaultSrc: ["'self'", 'data:', 'blob:', 'https:', 'ws:'],
-  //       baseUri: ["'self'"],
-  //       fontSrc: ["'self'", 'https:', 'data:'],
-  //       scriptSrc: [
-  //         "'self'",
-  //         'https:',
-  //         'http:',
-  //         'blob:',
-  //         'https://*.mapbox.com',
-  //         'https://js.stripe.com',
-  //         'https://m.stripe.network',
-  //         'https://*.cloudflare.com',
-  //       ],
-  //       frameSrc: ["'self'", 'https://js.stripe.com'],
-  //       objectSrc: ["'none'"],
-  //       styleSrc: ["'self'", 'https:', "'unsafe-inline'"],
-  //       workerSrc: [
-  //         "'self'",
-  //         'data:',
-  //         'blob:',
-  //         'https://*.tiles.mapbox.com',
-  //         'https://api.mapbox.com',
-  //         'https://events.mapbox.com',
-  //         'https://m.stripe.network',
-  //       ],
-  //       childSrc: ["'self'", 'blob:'],
-  //       imgSrc: ["'self'", 'data:', 'blob:'],
-  //       formAction: ["'self'"],
-  //       connectSrc: [
-  //         "'self'",
-  //         "'unsafe-inline'",
-  //         'data:',
-  //         'blob:',
-  //         'https://*.stripe.com',
-  //         'https://*.mapbox.com',
-  //         'https://*.cloudflare.com/',
-  //         'https://bundle.js:*',
-  //         'ws://127.0.0.1:*/',
-
-  //       ],
-  //       upgradeInsecureRequests: [],
-  //     },
-  //   },
-  // })
-);
-// -------------------------------------------
-
-app.set('view engine', 'pug');
-app.set('views', path.join(__dirname, 'views'));
-
-// Development Logging
-if (process.env.NODE_ENV === 'development') {
-  app.use(morgan('dev'));
-}
-
-// Limit requests from same API
-const limiter = rateLimit({
-  max: 100,
-  windowMs: 60 * 60 * 1000, // 100 requests per hour.
-  message: 'Too many requests from this IP, please try again in an hour!',
-});
-/* we can do it like this: app.user(limiter), 
-but what we actually want is to basically limit access to our API route. */
-app.use('/api', limiter);
-
-// Body parser, reading data from body into req.body
-app.use(express.json({ limit: '10kb' }));
-app.use(express.urlencoded({ extended: true, limit: '10kb' }));
-// Parse the data from cookies
-app.use(cookieParser());
-
-// Data sanitization against NoSQL query injection
-app.use(mongoSanitize());
-
-// Data sanitization against XSS (cross-site scripting attacks)
-app.use(xss());
-
-// Prevent parameter pollution
-app.use(
-  hpp({
-    // Define the params which actually can be duplicated
-    whitelist: [
-      'duration',
-      'ratingsQuantity',
-      'ratingsAverage',
-      'maxGroupSize',
-      'difficulty',
-      'price',
-    ],
-  })
+// We replace the placeholder <password> with the real password
+const DB = process.env.DATABASE.replace(
+  '<password>',
+  process.env.DATABASE_PASSWORD
 );
 
-app.use(compression())
+// 2nd we access to mongoose and call the connect method
+/* into this connect method, we need to pass in:
+1 - our database connection string. 
+2 - An object with some options that we need to specify in order to deal with some deprecations warnings */
+mongoose
+  .connect(DB, {
+    useNewUrlParser: true,
+    useCreateIndex: true,
+    useFindAndModify: false,
+  })
+  .then(() => {
+    console.log('DB connection successful!');
+  });
 
-// Test middleware
-app.use((req, res, next) => {
-  req.requestTime = new Date().toISOString();
-  next();
+// DEFINE THE PORT
+const port = process.env.PORT || 3000;
+
+// START SERVER
+const server = app.listen(port, () => {
+  console.log(`App running on port ${port}...`);
 });
 
-// 2. ROUTES
-app.use('/', viewRouter); // this is mounted right on the root URL
-app.use('/api/v1/tours', tourRouter);
-app.use('/api/v1/users', userRouter);
-app.use('/api/v1/reviews', reviewRouter);
-app.use('/api/v1/bookings', bookingRouter);
+// UNHANDLED REJECTIONS
+// Course approach
+// process.on('unhandledRejection', err => {
+//   console.log(err.name, err.message)
+// })
 
-/* app.all() gonna run for all the verbs (GET, POST, DELETE...) - '*' stands for everything */
-app.all('*', (req, res, next) => {
-  /* We're creating an error and we then define the status and status code properties on it 
-  so that our error handling middleware can then use them in the next step. */
+// Documentation approach https://nodejs.org/api/process.html#event-unhandledrejection
+process.on('unhandledRejection', (reason, promise) => {
+  console.log('Unhandled Rejection at:', promise, 'reason:', reason);
 
-  /* if the next function receives an argument, no matter what it is,
-  Express will automatically know that there was an error 
-  (it will skip all other middlewares in the stack 
-  and go straight to the error one).*/
-  next(new AppError(`Can't find ${req.originalUrl} on this server!`), 404);
+  // Application specific logging, throwing an error, or other logic here
+  /* If we really have like some problem with the database connection, 
+  then our application is not gonna work at all. And so all we can really do here 
+  is to shut down our application: what we do is to shutdown gracefully 
+  where we first close the server and only then, we shut down the application */
+  console.log('UNHANDLED REJECTION 💥 Shutting down...');
+  /* by doing server.close, we give the server, basically time to finish all the request 
+  that are still pending or being handled at the time, and only after that, 
+  the server is then basically killed */
+  server.close(() => {
+    process.exit(1); // Code one stands for uncaught exception.
+  });
 });
-
-app.use(globalErrorHandler);
-
-// EXPORT APP TO USE IT IN SERVER.JS
-module.exports = app;
