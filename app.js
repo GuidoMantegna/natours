@@ -8,6 +8,7 @@ const xss = require('xss-clean');
 const hpp = require('hpp');
 const cookieParser = require('cookie-parser');
 const compression = require('compression');
+const cors = require('cors');
 
 const AppError = require('./utils/appError');
 const globalErrorHandler = require('./controllers/errorController');
@@ -21,12 +22,23 @@ const viewRouter = require('./routes/viewRoutes');
 const app = express();
 
 // GLOBAL MIDDLEWARES
+// Implement CORS
+app.use(cors()) // Access-Control-Allow-Origin *
+
+/* 
+  1. we need to define the route for which we want to handle the options (all)
+  2. then basically the handler, which once more is the CORS middleware
+*/
+app.options('*', cors());
+
 // Serving static files
 /* here we pass the directory from which we want to serve static files. */
 app.use(express.static(path.join(__dirname, 'public')));
 
 // Set security HTTP headers
 app.use(helmet());
+
+app.enable('trust proxy')
 
 // LEAFLET CONFIG ----------------------------
 // Further HELMET configuration for Security Policy (CSP)
