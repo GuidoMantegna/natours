@@ -5,6 +5,8 @@ const bookingController = require('../controllers/bookingController');
 
 const router = express.Router();
 
+router.use(viewsController.alerts);
+
 /* here is where we need to add that middleware function because this is the route 
 that will be hit when a credit card is successfully charged, so this is also the point 
 of time where we want to create a new booking. */
