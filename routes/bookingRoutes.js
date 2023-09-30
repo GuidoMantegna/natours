@@ -3,6 +3,7 @@ const bookingController = require('./../controllers/bookingController');
 const authController = require('./../controllers/authController');
 
 const router = express.Router();
+
 router.use(authController.protect);
 
 // This route will only be for the client to get a checkout session.
