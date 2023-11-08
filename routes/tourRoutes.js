@@ -4,6 +4,7 @@ const express = require('express');
 const tourController = require('../controllers/tourController');
 const authController = require('./../controllers/authController');
 const reviewRouter = require('./../routes/reviewRoutes');
+const bookingRouter = require('./../routes/bookingRoutes');
 
 // CREATE THE ROUTER
 const router = express.Router();
@@ -13,6 +14,8 @@ review router in case it ever encounters a route like this.
 First gonna reach the tour router app.use('/api/v1/tours', tourRouter);
 Then, when it matches '/:tourId/reviews' it will continue with reviewRouter. */
 router.use('/:tourId/reviews', reviewRouter);
+
+router.use('/:tourId/bookings', bookingRouter);
 
 /* Before we call getAllTours from the tours controller, 
 we use a middleware that can actually manipulate and filter the tours */
